@@ -110,7 +110,7 @@ def get_transmission_angles(a, b, c, d, lower_limit, upper_limit, steps):
     """
     transmission_angles = []
     for i in range(lower_limit, upper_limit, steps):
-        m = acos(((b * b + c * c) - (a * a + d * d) + (2 * a * d * cos(i))) / (2 * b * c))
+        m = acos(((b * b + c * c) - (a * a + d * d) + (2 * a * d * cos(radians(i)))) / (2 * b * c))
         transmission_angles.append(m)
     return transmission_angles
 
