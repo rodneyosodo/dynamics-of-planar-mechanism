@@ -124,18 +124,77 @@ def plot_transmission_angles_and_input_angles(transmission_angles: list, input_a
     plt.xlabel("Input angles")
     plt.ylabel("Transmission angles")
     plt.title("Input angles vs Transmission angles")
-    plt.plot(input_angles, transmission_angles, color='red', linewidth=1.0, )
+    plt.plot(input_angles, transmission_angles, color='red', linewidth=1.0)
     plt.show()
 
+def compare_transmission_angles_and_input_angles(t_angles: list, t_angles_1: list, input_angles: list):
+    """
+    Plots the transmission_angles vs input_angles angles
+    :param transmission_angles: The transmission angles
+    :param input_angles: The input angles
+    """
+    plt.xlabel("Input angles")
+    plt.ylabel("Transmission angles")
+    plt.title("Input angles vs Transmission angles")
+    plt.plot(input_angles, t_angles, color='red', linewidth=1.0, label="3 precision point")
+    plt.plot(input_angles, t_angles_1, color='blue', linewidth=1.0, label="5 precision point")
+    plt.legend()
+    plt.show()
+
+def compute_least_square_method(theta2: list, theta4: list):
+    """
+    The angles θ and φ are specified for a position. If θ i and φ i are the angles for ith
+    position, then Freudenstein’s equation may be written as
+    k 1 cos φ i − k 2 cos θ i + k 3 − cos( θ i − φ i ) = 0
+    Let e be the error which is defined as
+    e = ∑ [ k 1 cos φ i − k 2 cos θ i + k 3 − cos ( θ i − φ i )] 2
+    For e to be minimum, the partial derivatives of e with respect to k 1 , k 2 , k 3 separately must
+    be equal to zero, i.e.
+    """
+    a, b, c, d, e, f, g, h = 0,0,0,0,0,0,0,0
+    for i in range(0, len(theta2), 1):
+        a = a + (cos(theta4[i]) * cos(theta4[i]))
+        b = b + (cos(theta2[i]) * cos(theta4[i]))
+        c = c + (cos(theta4[i]))
+        d = d + (cos(theta2[i] - theta4[i]) * cos(theta4[i]))
+        e = e + (cos(theta2[i]) * cos(theta2[i]))
+        f = f + (cos(theta2[i]))
+        g = g + (cos(theta2[i] - theta4[i]) * cos(theta2[i]))
+        h = h + (cos(theta2[i] - theta4[i]))
+        # Define coefficient matrices as numpy arrays
+    A = np.array([
+        [a, -1 * b, c],
+        [b, -1 * e, f],
+        [c, -1 * f, len(theta2)]])
+    # Define results matrices as numpy arrays
+    B = np.array([d, g , h])
+    # Use numpy’s linear algebra solve function to solve the system
+    constants = np.linalg.solve(A, B)
+    return constants
 
 if __name__ == "__main__":
+    # Question a
     theta2 = get_precision_points(15, 165, 3)
     theta4 = get_theta_4(theta2)
-    constants = compute_freudensteins_constants(theta2, theta4)
-    print("The constants are:\nk1: {}\nk2: {}\nk3: {}\n".format(constants[0], constants[1], constants[2]))
-    a, b, c, d = lengths_of_links(constants)
+    constants1 = compute_freudensteins_constants(theta2, theta4)
+    print("The constants are:\nk1: {}\nk2: {}\nk3: {}\n".format(constants1[0], constants1[1], constants1[2]))
+    a, b, c, d = lengths_of_links(constants1)
     print(
-        "The lenghts of links are:\nInput link: {}\nCoupler: {}\nOutput link: {}\nFixed link: {}\n".format(a, b, c, d))
+        "The lenghts of links based on Freudenstein are:\nInput link: {}\nCoupler: {}\nOutput link: {}\nFixed link: {}\n".format(a, b, c, d))
     transmission_angles = get_transmission_angles(a, b, c, d, 15, 165, 5)
     print("The transmission angles for the range of inputs are:\n{}\n".format(transmission_angles))
     plot_transmission_angles_and_input_angles(transmission_angles, [i for i in range(15, 165, 5)])
+
+    # Question b
+    theta2 = get_precision_points(15, 165, 5)
+    theta4 = get_theta_4(theta2)
+    constants2 = compute_least_square_method(theta2, theta4)
+    print("The constants are:\nk1: {}\nk2: {}\nk3: {}\n".format(constants2[0], constants2[1], constants2[2]))
+    a, b, c, d = lengths_of_links(constants2)
+    print(
+        "The lenghts of links based on Least Square Method are:\nInput link: {}\nCoupler: {}\nOutput link: {}\nFixed link: {}\n".format(a, b, c, d))
+
+    # Question c
+
+    transmission_angles2 = get_transmission_angles(a, b, c, d, 15, 165, 5)
+    compare_transmission_angles_and_input_angles(transmission_angles, transmission_angles2, [i for i in range(15, 165, 5)])
