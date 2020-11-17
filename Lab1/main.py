@@ -165,12 +165,36 @@ def compute_least_square_method(theta2: list, theta4: list):
     A = np.array([
         [a, -1 * b, c],
         [b, -1 * e, f],
-        [c, -1 * f, len(theta2)]])
+        [c, -1 * f, 1]])
     # Define results matrices as numpy arrays
     B = np.array([d, g , h])
     # Use numpy’s linear algebra solve function to solve the system
     constants = np.linalg.solve(A, B)
     return constants
+
+def calculate_structural_errors(input_angles: list, output_angles: list, constants: list):
+    """"
+
+    """
+    input_angles = convert_angles_to_radians(input_angles)
+    output_angles = convert_angles_to_radians(output_angles)
+    structural_errors = []
+    for i in range(len(input_angles)):
+        structural_errors.append((constants[0] * cos(output_angles[i])) - (constants[1] * cos(input_angles[i])) + constants[2] - cos(input_angles[i] - output_angles[i]))
+
+    return structural_errors
+
+def plot_structural_erros(errors1, errors2, input_angles):
+    """
+    """
+    plt.xlabel("Input angles")
+    plt.ylabel("Structural errors")
+    plt.title("Structural errors vs input angles")
+    plt.plot(input_angles, errors1, color='red', linewidth=1.0, label="Freud")
+    plt.plot(input_angles, errors2, color='blue', linewidth=1.0, label="LS")
+    plt.legend()
+    plt.show()
+    
 
 if __name__ == "__main__":
     # Question a
@@ -196,5 +220,16 @@ if __name__ == "__main__":
 
     # Question c
 
-    transmission_angles2 = get_transmission_angles(a, b, c, d, 15, 165, 5)
-    compare_transmission_angles_and_input_angles(transmission_angles, transmission_angles2, [i for i in range(15, 165, 5)])
+    theta5 = [i for i in range(15, 165, 5)]
+    theta6 = get_theta_4(theta5)
+
+    errors1 = calculate_structural_errors(theta5, theta6, constants1)
+
+    theta7 = get_precision_points(15, 165, 5)
+    theta8 = get_theta_4(theta2)
+
+    errors2 = calculate_structural_errors(theta5, theta6, constants2)
+    print("{}\n{}".format(errors1, errors2))
+    plot_structural_erros(errors1, errors2, [i for i in range(15, 165, 5)])
+    # transmission_angles2 = get_transmission_angles(a, b, c, d, 15, 165, 5)
+    # compare_transmission_angles_and_input_angles(transmission_angles, transmission_angles2, [i for i in range(15, 165, 5)])
