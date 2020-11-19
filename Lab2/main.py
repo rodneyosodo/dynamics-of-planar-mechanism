@@ -1,4 +1,4 @@
-from math import cos, pi, radians, sqrt, acos, degrees
+from math import cos, pi, radians, sqrt, acos, degrees, atan, sin
 from matplotlib import pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -115,21 +115,27 @@ def calculate_structural_errors(input_angles: list, output_angles: list, constan
 
     return structural_errors
 
-def compute_output_angles(input_angles: list):
+def compute_output_angles(input_angles: list, constants: list):
     """
     Based on the given set of input and output angles applies
     simple linear regression for the whole range of input angles
     :param input_angles: The input angles
     :return output_angles: The output angles
     """
-    x = np.array([40, 45, 50, 55, 60]).reshape((-1, 1))
-    y = np.array([70, 76, 83, 91, 100])
-    model = LinearRegression()
-    model.fit(x,y) #actually produces the linear eqn for the data
+    # x = np.array([40, 45, 50, 55, 60]).reshape((-1, 1))
+    # y = np.array([70, 76, 83, 91, 100])
+    # model = LinearRegression()
+    # model.fit(x,y) #actually produces the linear eqn for the data
     
-    # predicting the test set results
-    output_angles = model.predict(np.array(input_angles).reshape((-1,1))) 
-
+    # # predicting the test set results
+    # output_angles = model.predict(np.array(input_angles).reshape((-1,1)))
+    output_angles = []
+    for i in input_angles:
+        A = sin(radians(i))
+        B = cos(radians(i)) - constants[0]
+        C = constants[2] - constants[1] * cos(radians(i))
+        output_angles.append(round(degrees(2 * atan(((A - sqrt(A*A + B*B - C*C)) / (B + C)))), 1))
+    print('INFO: We use the second set with negative as it corresponds with the input output values given in the question')
     return output_angles
 
 def plot_structural_errors(errors, input_angles):
@@ -138,10 +144,14 @@ def plot_structural_errors(errors, input_angles):
     :param errors: The errors
     :param input_angles: The input angles
     """
+    from scipy.interpolate import splrep, splev
+    bspl = splrep(input_angles, errors, s=10)
+    poly_y = splev(input_angles, bspl)
     plt.xlabel("Input angles")
     plt.ylabel("Structural errors")
     plt.title("Structural errors vs input angles")
-    plt.plot(input_angles, errors, color='red', linewidth=1.0, label="Simple LinearRegression")
+    plt.plot(input_angles, poly_y, color='red', linewidth=1.0, label='smoothen')
+    plt.plot(input_angles, errors, color='blue', linewidth=1.0, label='real errors')
     plt.legend()
     plt.show()
     
@@ -163,6 +173,6 @@ if __name__ == "__main__":
 
 
     # Question c
-    output_angles = compute_output_angles(input_angles)
+    output_angles = compute_output_angles(input_angles, constants)
     errors = calculate_structural_errors(input_angles, output_angles, constants)
     plot_structural_errors(errors, input_angles)
